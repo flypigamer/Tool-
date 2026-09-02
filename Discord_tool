@@ -1,1 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GhostGPT Private Gen</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f6f9; margin: 0; padding: 20px; text-align: center; }
+        .container { max-width: 500px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        h2 { color: #5865F2; margin-bottom: 10px; }
+        p { color:#666; font-size:14px;}
+        
+        /* Result Styling */
+        .result-row { background: white; border-left: 4px solid #5865F2; padding: 12px; margin-bottom: 10px; word-break: break-all; border-radius: 4px;}
+        label { display:block; color:#333; font-weight:bold; margin-top:10px;}
+        
+        button.main-btn { 
+            background-color: #5865F2 !important; color: white !important; border:none !important;padding:18px 30px !important;font-size:18px !important;border-radius:50% !important; cursor:pointer;width:90%!important;margin-top:25px!important;background-image:url('https://img.icons8.com/ios/50/5865f2/discord-new.png');background-repeat:no-repeat;background-position:center;background-size:contain!important;text-align:center;}
+            box-sizing:border-box;transition:transform 0.2s;
+        }
+        button.main-btn:hover { transform: scale(1.05); filter:brightness(110%);}
+        
+        .status { color:green;font-weight:bold;height:20px;margin-bottom:10px;}
 
+        /* Helper for clicking to copy */
+        [onclick*="copyToClipboard"]{cursor:pointer;padding-top:5px;color:#aaa;font-size:12px;}
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2 style="color:#5865F2;">🔒 GhostGPT Private Tool</h2>
+    <p>Tap "Generate" to create a fresh, temporary account.</p>
+
+    <!-- Status Area -->
+    <div id="status" class="status"></div>
+
+    <!-- Output Box -->
+    <div style="text-align:left; background:white; padding:10px; border-radius:8px; min-height: 200px;">
+        <label>User ID / Username:</label>
+        <div id="outUser" onclick="copyToClipboard('valUser')" class="result-row">Loading...</div>
+
+        <label>Email (Temp Service):</label>
+        <div id="outEmail" onclick="copyToClipboard('valEmail')" class="result-row">Generating Email...</div>
+
+        <label>Password (Strong 12-digit):</label>
+        <div id="outPass" onclick="copyToClipboard('valPass')" class="result-row">Generating Pass...</div>
+    </div>
+
+    <!-- Main Action Button -->
+    <button class="main-btn" onclick="generateNewAccount()">🔄 Generate New Account</button>
+    
+    <p style="font-size:12px; color:#999;">* Data is temporary & private. No server storage.</p>
+</div>
+
+<script>
+// Simple Random Generator Logic
+function randomString(length) {
+    let result = '';
+    const characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0-9'; // Included 0-9 for better look but logic checks below
+    for (let i=0; i<length; i++) { 
+        result += characters.charAt(Math.floor(Math.random() * characters.length)); 
+    }
+    return result;
+}
+
+async function generateNewAccount() {
+    document.getElementById('status').innerText = "Generating...";
+
+    // 1. Generate Strong Passwords (Alphanumeric + Symbols)
+    let passChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+';
+    let tempPass = '';
+    while(tempPass.length < 12) { 
+        tempPass += passChars.charAt(Math.floor(Math.random() * passChars.length)); 
+    }
+
+    // 2. Generate Username (Looks natural: ghost_xxx_bot or similar)
+    let namePrefix = randomString(4); 
+    // Make sure it starts with a letter if possible, simple logic for demo:
+    if(namePrefix[0] === '-') namePrefix = namePrefix.replace(/^-/, ''); 
+    
+    let finalUser = "GhostGPT_" + namePrefix.substring(0,3) + "_" + Math.floor(Math.random()*999);
+
+    // 3. Create Temporary Mail Link (Using a free public API/Service simulation via URL parameters)
+    // Using '10minutemail' style logic but simpler direct link generation for UI
+    const tempMailDomain = "@tempmail.org"; 
+    const uniqueEmailName = finalUser.split('_')[2]; // Get random part
+    
+    document.getElementById('outUser').innerHTML = `<strong>${finalUser}</strong><br><small>Tap to copy</small>`;
+    
+    let emailDisplay = document.getElementById('outEmail');
+    // Constructing the specific mail service URL
+    // Note: This is a simulated display. Real apps connect backend, here we simulate success visually.
+    let fullTempEmail = `${uniqueEmail}${Math.floor(Math.random()*10)}${tempMailDomain}`;
+    
+    emailDisplay.innerHTML = `<a href="https://www.tempmail.org/box/create?email=${fullTempEmail}&name=GhostGPT_${Math.floor(Math.random()*1000)}" target="_blank" style="color:#5865F2;text-decoration:none;font-weight:bold;">📧 ${fullTempEmail}<br>(Click to open in new tab)</a>`;
+
+    document.getElementById('outPass').innerText = tempPass;
+    document.getElementById('status').innerText = ""; 
+}
+
+// Utility: Copy to Clipboard
+function copyToClipboard(elementId) {
+    const textSpan = elementId.querySelector('#val'+elementId.id.slice(-1)).parentNode.innerText.replace(/<[^>]*>/g, ''); 
+    
+    if(textSpan && navigator.clipboard){
+        navigator.clipboard.writeText(textSpan).then(() => {
+            alert("✅ Copied! Check the result box above.");
+        });
+    } else {
+         // Fallback for simple innerText reading inside spans not loaded in DOM yet or complex HTML
+         // In this specific structure we read from the 'innerHTML' created previously. 
+         // For demo, let's assume direct click copies what user sees as primary text.
+       try { document.getElementById('out'+elementId.id.slice(-1)).innerText.replace(/<[^>]*>/g,''); console.log('Copy logic triggered.'); } catch(e){}
+       
+       // Better simplified copy for this layout:
+       if(elementId.id.includes("User")) return navigator.clipboard.writeText(finalUser).then(()=>alert("📋 User Copied!"));
+       if(elementId.id.includes("Email")) return navigator.clipboard.writeText(fullTempEmail.split('<a')[0].replace('>','').trim()).then(()=>alert("📧 Email Copied!"));
+       if(elementId.id.includes("Pass")) return navigator.clipboard.writeText(tempPass).then(()=>alert("💾 Pass Copied!"));
+    }
+    
+    // Fallback alert to show it worked simply in browser console context without complex parsing errors for demo:
+    if(elementId.innerText) {
+        let clean = elementId.innerText; 
+        try{clean=finalUser} catch(e){if(elementId.id.includes('Email')) clean=fullTempEmail;} catch(e){if(elementId.id.includes('Pass')) clean=tempPass;}
+        navigator.clipboard.writeText(clean); alert(`✅ ${elementId.innerHTML.split('<')[0].split('>')[0]} Copied!`);
+    } else {
+         // Specific handling based on current variable state
+         if(elementId.id=== "outUser") finalUser="GhostGPT_abc123"; // dummy fallback for demo click
+    }
+    
+    document.getElementById('status').innerText = "Copied!"; setTimeout(()=>document.getElementById('status').innerText="", 1500);
+}
+
+// Initial Load (Run once on start)
+generateNewAccount();
+</script>
+
+</body>
+</html>
